@@ -3,7 +3,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 
-#include "src/qmldirFiles.hpp"
+#include "src/QmldirTree.hpp"
 
 int
 main( int argc, char* argv[] )
@@ -15,10 +15,10 @@ main( int argc, char* argv[] )
     app.setOrganizationName( "Normas" );
     app.setOrganizationDomain( "normas.taras" );
 
-    qmlRegisterType< qmldirFiles >( "base.QmldirTree", 1, 0, "QmldirTree" );
-    qmlRegisterType< Node >( "base.Node", 1, 0, "Node" );
+    qmlRegisterType< QmldirTree >( "base.QmldirTree", 1, 0, "QmldirTree" );
+//    qmlRegisterType< Node >( "base.Node", 1, 0, "Node" );
 
-    qmldirFiles* qmldir_tree = new qmldirFiles;
+    QmldirTree* qmldir_tree = new QmldirTree;
 
     QQmlApplicationEngine engine;
 

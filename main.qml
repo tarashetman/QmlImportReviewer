@@ -5,7 +5,7 @@ import QtQuick.Controls 2.12
 
 import QtQuick.Dialogs 1.2
 
-import base.Node 1.0
+//import base.Node 1.0
 import base.QmldirTree 1.0
 
 Window {
@@ -16,7 +16,7 @@ Window {
     visible: true
     width: 1280
     height: 720
-    title: qsTr("Hello World")
+    title: "QmlImportReviewer"
 
     RowLayout{
         anchors.top: parent.top
@@ -31,6 +31,8 @@ Window {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
+            enabled: !qmldirTree.searching_in_progress
+
             text: "Root qml dir: " + "<b>" + qmldir_tree.qml_folder_string + "<\b>"
 
             onClicked: {
@@ -41,6 +43,8 @@ Window {
             id: _searchingQmldir
 
             Layout.fillHeight: true
+
+            enabled: !qmldirTree.searching_in_progress
 
             text: "Search qmldirs"
 
@@ -62,7 +66,21 @@ Window {
         }
 
         Component.onCompleted: {
-            qmldirTree.set_qml_folder_string("////////home/thetman/Project/donington/ha-hmi/src/hmi/qml", false);
+            qmldirTree.set_qml_folder_string("////////home/hetman/WORK/PROJECTS/delorean/delorean/hmi");
+//            qmldirTree.set_qml_folder_string(shortcuts.home, false);
         }
     }
+
+//    ProgressBar{
+//        anchors.bottom: parent.bottom
+//        anchors.left: parent.left
+//        anchors.right: parent.right
+//        anchors.margins: 10
+//        height: 30
+
+//        from: 0
+//        to: 100
+
+//        value: 100
+//    }
 }
