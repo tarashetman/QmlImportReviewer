@@ -14,6 +14,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
+    src/QmlFile.cpp \
     src/QmldirFile.cpp \
     src/QmldirTree.cpp
 
@@ -31,5 +32,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    src/QmlFile.hpp \
     src/QmldirFile.hpp \
     src/QmldirTree.hpp

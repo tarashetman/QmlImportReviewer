@@ -2,136 +2,189 @@
 #include <QDebug>
 #include <QDirIterator>
 
-//Node::Node( QObject* parent )
-//    : QObject( parent )
-//{
-//}
-
-//Node::Node( const QString& folder, bool contains_qmldir, QObject* parent )
-//    : QObject( parent )
-//    , m_folder( folder )
-//    , m_contains_qmldir( contains_qmldir )
-//{
-//}
-
-//Node::Node( const Node& node )
-//{
-//    setParent( node.parent( ) );
-//    m_folder = node.folder( );
-//    m_contains_qmldir = node.contains_qmldir( );
-//}
-
-//// bool
-//// Node::operator==( const Node& node ) const
-////{
-////}
-
-//QString
-//Node::folder( ) const
-//{
-//    return m_folder;
-//}
-
-//void
-//Node::set_folder( QString folder )
-//{
-//    if ( m_folder == folder )
-//    {
-//        return;
-//    }
-
-//    m_folder = folder;
-//    emit folder_changed( m_folder );
-//}
-
-//bool
-//Node::contains_qmldir( ) const
-//{
-//    return m_contains_qmldir;
-//}
-
-//void
-//Node::set_contains_qmldir( bool contains_qmldir )
-//{
-//    if ( m_contains_qmldir == contains_qmldir )
-//    {
-//        return;
-//    }
-
-//    m_contains_qmldir = contains_qmldir;
-//    emit contains_qmldir_changed( m_contains_qmldir );
-//}
-
-//------------------------------------------------------------------------------------------------
-
-QmldirTree::QmldirTree( QObject* parent )
+Tree::Tree( QObject* parent )
     : QObject( parent )
 {
 }
 
 void
-QmldirTree::start_searching_qmldir( QString folder )
+Tree::start_searching( const QString& folder )
 {
-    m_tree.clear();
-    QString root = "";
+    //    qDebug( ) << contains_qml_files( folder );
     set_searching_in_progress( true );
-    if ( contains_qmldir( folder ) )
+
+    start_searching_qmldir_files( folder );
+    start_searching_qml_files( folder );
+
+    set_searching_in_progress( false );
+
+    qDebug( ) << "qmldir files count:" << m_qmldir_tree.count( );
+    qDebug( ) << "qml files count:" << m_qml_tree.count( );
+
+    start_review( );
+}
+
+void
+Tree::start_review( )
+{
+    QmlTree::iterator end = m_qml_tree.end( );
+    // for all qml components get import map
+    for ( QmlTree::iterator qml_tree_it = m_qml_tree.begin( ); qml_tree_it != end; ++qml_tree_it )
+    {
+        qDebug( ) << "\n" << qml_tree_it->fileName( );
+        QStringList keys;
+        keys << qml_tree_it->import_map( ).keys( );
+        keys.removeDuplicates( );
+
+        // for all individual import versions get imports
+        for ( auto& key : keys )
+        {
+            QList< ComponentStatus > imports = qml_tree_it->import_map( ).values( key );
+
+            // for all imports get qmldir components
+            for ( auto& import : imports )
+            {
+                QList< ContentComponent > available_components;
+                available_components << qmldir_tree( )
+                                                .value( import.first /*full import name*/ )
+                                                .qml_content( )
+                                                .values( key );
+
+                if ( available_components.isEmpty( ) )
+                {
+                    import.second = "EMPTY COMPONENT LIST";
+                    continue;
+                }
+                // And now I can compare it
+
+                for ( const auto& available_component : available_components )
+                {
+                    if ( qml_tree_it->used_components( ).contains( available_component.first ) )
+                    {
+                        break;
+                    }
+                }
+                import.second = "DON'T USES";
+                qDebug( ) << import.first << key << import.second;
+            }
+        }
+    }
+}
+
+void
+Tree::start_searching_qmldir_files( const QString& folder )
+{
+    m_qmldir_tree.clear( );
+    QString root = "";
+    if ( contains_qmldir_files( folder ) )
     {
         root = folder;
-        root = root.remove(0, root.lastIndexOf("/") + 1);
-        m_tree[root] = QmldirFile(folder + "/qmldir");
-
+        root = root.remove( 0, root.lastIndexOf( "/" ) + 1 );
+        m_qmldir_tree[ root ] = QmldirFile( folder + "/qmldir" );
     }
 
     QDirIterator dir( folder, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories );
     while ( dir.hasNext( ) )
     {
-        if ( contains_qmldir( dir.next() ) )
+        if ( contains_qmldir_files( dir.next( ) ) )
         {
-            m_tree[ (!root.isEmpty() ? (root + ".") : ("")) + dir.filePath().remove(folder + "/")
-                    .replace("/", ".")] = QmldirFile(dir.filePath() + "/qmldir");
+            m_qmldir_tree[ ( !root.isEmpty( ) ? ( root + "." ) : ( "" ) )
+                           + dir.filePath( ).remove( folder + "/" ).replace( "/", "." ) ]
+                    = QmldirFile( dir.filePath( ) + "/qmldir" );
         }
     }
-    emit tree_changed(m_tree);
+    emit qmldir_tree_changed( m_qmldir_tree );
 
-    Tree::iterator end = m_tree.end();
-    for (Tree::iterator begin = m_tree.begin() ; begin != end ; ++begin) {
-        qDebug() << begin.key() << begin.value().qml_content().values("1.0");
-    }
-    set_searching_in_progress( false );
+    //    QmldirTree::iterator end = m_qmldir_tree.end( );
+    //    for ( QmldirTree::iterator begin = m_qmldir_tree.begin( ); begin != end; ++begin )
+    //    {
+    //        qDebug( ) << begin.key( ) << begin.value( ).qml_content( ).values( "1.0" );
+    //    }
 }
 
 void
-QmldirTree::reset( )
+Tree::start_searching_qml_files( const QString& folder )
 {
-    m_tree.clear( );
+    m_qml_tree.clear( );
+    QStringList filters;
+    filters << "*.qml";
+
+    QDirIterator root_dir( folder, filters, QDir::Files | QDir::NoSymLinks );
+    while ( root_dir.hasNext( ) )
+    {
+        m_qml_tree.append( QmlFile( root_dir.next( ), this ) );
+    }
+
+    QDirIterator sub_dirs(
+            folder, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories );
+    while ( sub_dirs.hasNext( ) )
+    {
+        QDirIterator sub_dir( sub_dirs.next( ), filters, QDir::Files | QDir::NoSymLinks );
+        while ( sub_dir.hasNext( ) )
+        {
+            m_qml_tree.append( QmlFile( sub_dir.next( ), this ) );
+        }
+    }
+
+    emit qml_tree_changed( m_qml_tree );
+
+    //    QmlTree::iterator end = m_qml_tree.end( );
+    //    for ( QmlTree::iterator begin = m_qml_tree.begin( ); begin != end; ++begin )
+    //    {
+    //        qDebug( ) << begin->fileName( );
+    //    }
+}
+
+void
+Tree::reset( )
+{
+    m_qmldir_tree.clear( );
+    m_qml_tree.clear( );
     m_qml_folder_string = "";
 }
 
 QString
-QmldirTree::qml_folder_string( ) const
+Tree::qml_folder_string( ) const
 {
     return m_qml_folder_string;
 }
 
 bool
-QmldirTree::contains_qmldir( QString folder ) const
+Tree::contains_qmldir_files( QString folder ) const
 {
     return QDir( folder ).exists( "qmldir" );
 }
 
-bool QmldirTree::searching_in_progress() const
+// bool
+// Tree::contains_qml_files( QString folder ) const
+//{
+//    QStringList filters;
+//    filters << "*.cpp";
+//    QDirIterator dir( folder, filters, QDir::Files | QDir::NoSymLinks );
+
+//    return dir.hasNext( );
+//}
+
+bool
+Tree::searching_in_progress( ) const
 {
     return m_searching_in_progress;
 }
 
-Tree QmldirTree::tree() const
+QmldirTree
+Tree::qmldir_tree( ) const
 {
-    return m_tree;
+    return m_qmldir_tree;
+}
+
+QmlTree
+Tree::qml_tree( ) const
+{
+    return m_qml_tree;
 }
 
 void
-QmldirTree::set_qml_folder_string( QString qml_folder_string )
+Tree::set_qml_folder_string( QString qml_folder_string )
 {
     qml_folder_string.remove( 0, 7 );
     if ( m_qml_folder_string == qml_folder_string )
@@ -144,13 +197,14 @@ QmldirTree::set_qml_folder_string( QString qml_folder_string )
     emit qml_folder_string_changed( m_qml_folder_string );
 }
 
-void QmldirTree::set_searching_in_progress(bool searching_in_progress)
+void
+Tree::set_searching_in_progress( bool searching_in_progress )
 {
-    if (m_searching_in_progress == searching_in_progress)
+    if ( m_searching_in_progress == searching_in_progress )
     {
         return;
     }
 
     m_searching_in_progress = searching_in_progress;
-    emit searching_in_progress_changed(m_searching_in_progress);
+    emit searching_in_progress_changed( m_searching_in_progress );
 }

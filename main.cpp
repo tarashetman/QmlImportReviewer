@@ -15,10 +15,10 @@ main( int argc, char* argv[] )
     app.setOrganizationName( "Normas" );
     app.setOrganizationDomain( "normas.taras" );
 
-    qmlRegisterType< QmldirTree >( "base.QmldirTree", 1, 0, "QmldirTree" );
+    qmlRegisterType< Tree >( "base.QmldirTree", 1, 0, "QmldirTree" );
 //    qmlRegisterType< Node >( "base.Node", 1, 0, "Node" );
 
-    QmldirTree* qmldir_tree = new QmldirTree;
+    Tree* qmldir_tree = new Tree;
 
     QQmlApplicationEngine engine;
 

@@ -5,7 +5,6 @@ import QtQuick.Controls 2.12
 
 import QtQuick.Dialogs 1.2
 
-//import base.Node 1.0
 import base.QmldirTree 1.0
 
 Window {
@@ -18,7 +17,7 @@ Window {
     height: 720
     title: "QmlImportReviewer"
 
-    RowLayout{
+    RowLayout {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
@@ -49,7 +48,7 @@ Window {
             text: "Search qmldirs"
 
             onClicked: {
-                qmldirTree.start_searching_qmldir(qmldir_tree.qml_folder_string);
+                qmldirTree.start_searching(qmldir_tree.qml_folder_string);
             }
         }
     }
@@ -66,8 +65,8 @@ Window {
         }
 
         Component.onCompleted: {
-            qmldirTree.set_qml_folder_string("////////home/hetman/WORK/PROJECTS/delorean/delorean/hmi");
-//            qmldirTree.set_qml_folder_string(shortcuts.home, false);
+            qmldirTree.set_qml_folder_string("////////home/thetman/Project/donington/ha-hmi/src/hmi/qml");
+//            qmldirTree.set_qml_folder_string(shortcuts.home, false); // TODO set on release
         }
     }
 
