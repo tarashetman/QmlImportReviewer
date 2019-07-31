@@ -21,17 +21,18 @@ Tree::start_searching( const QString& folder )
     qDebug( ) << "qmldir files count:" << m_qmldir_tree.count( );
     qDebug( ) << "qml files count:" << m_qml_tree.count( );
 
-    start_review( );
+    start_review_of_imports( );
 }
 
 void
-Tree::start_review( )
+Tree::start_review_of_imports( )
 {
     QmlTree::iterator end = m_qml_tree.end( );
     // for all qml components get import map
     for ( QmlTree::iterator qml_tree_it = m_qml_tree.begin( ); qml_tree_it != end; ++qml_tree_it )
     {
-        qDebug( ) << "\n" << qml_tree_it->fileName( );
+        //        qDebug( ) << "\n";
+        //        qDebug( ) << qml_tree_it->fileName( );
         QStringList keys;
         keys << qml_tree_it->import_map( ).keys( );
         keys.removeDuplicates( );
@@ -57,18 +58,29 @@ Tree::start_review( )
                 }
                 // And now I can compare it
 
+                bool is_using = false;
+
                 for ( const auto& available_component : available_components )
                 {
                     if ( qml_tree_it->used_components( ).contains( available_component.first ) )
                     {
+                        is_using = true;
                         break;
                     }
                 }
-                import.second = "DON'T USES";
-                qDebug( ) << import.first << key << import.second;
+                if ( !is_using )
+                {
+                    import.second = "DON'T USES";
+                    qDebug( ) << import.first << key << import.second;
+                }
             }
         }
     }
+}
+
+void
+Tree::start_review_of_usable_qml_files( )
+{
 }
 
 void
@@ -181,6 +193,12 @@ QmlTree
 Tree::qml_tree( ) const
 {
     return m_qml_tree;
+}
+
+QVariantList
+Tree::qml_error_imports( ) const
+{
+    return m_qml_error_imports;
 }
 
 void

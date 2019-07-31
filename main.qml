@@ -18,6 +18,7 @@ Window {
     title: "QmlImportReviewer"
 
     RowLayout {
+        id: _controlsRow
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
@@ -49,6 +50,30 @@ Window {
 
             onClicked: {
                 qmldirTree.start_searching(qmldir_tree.qml_folder_string);
+            }
+        }
+    }
+
+    ListView {
+        id : _listView
+
+        anchors.top: _controlsRow.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
+        model: 20
+        clip: true
+        spacing: 5
+
+        delegate: Rectangle {
+            id: _delegate
+            height: 20
+            width: parent.width
+            color: "red"
+            Text {
+                id: _fileName
+//                text: model.fileName
             }
         }
     }
