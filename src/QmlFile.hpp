@@ -2,7 +2,72 @@
 #include <QFile>
 #include "QmldirFile.hpp"
 
-using ComponentStatus = QPair< QString /*full import name*/, QString /*error*/ >;
+struct ComponentStatus : public QObject
+{
+    Q_OBJECT
+    Q_PROPERTY( QString full_import_name READ full_import_name )
+    Q_PROPERTY( QString error READ error )
+
+public:
+    ComponentStatus( QObject* parent = nullptr ) = delete;
+    ComponentStatus( QString full_import_name, QString related_qml_file, QObject* parent = nullptr )
+        : QObject( parent )
+        , m_full_import_name( full_import_name )
+        , m_error( related_qml_file )
+    {
+    }
+    ComponentStatus( const ComponentStatus& component )
+        : QObject( component.parent( ) )
+        , m_full_import_name( component.full_import_name( ) )
+        , m_error( component.error( ) )
+    {
+    }
+
+    ComponentStatus&
+    operator=( const ComponentStatus& component )
+    {
+        if ( this == &component )
+        {
+            return *this;
+        }
+        setParent( component.parent( ) );
+        m_full_import_name = component.full_import_name( );
+        m_error = component.error( );
+        return *this;
+    }
+
+    bool
+    operator==( const ComponentStatus& l )
+    {
+        return m_full_import_name == l.full_import_name( ) && m_error == l.error( );
+    }
+
+    QString
+    full_import_name( ) const
+    {
+        return m_full_import_name;
+    }
+
+    QString
+    error( ) const
+    {
+        return m_error;
+    }
+
+    void
+    set_error( QString error )
+    {
+        m_error = error;
+    }
+
+private:
+    QString m_full_import_name{};
+    QString m_error{};
+};
+
+//----------------------------------------------------------------------------------------------------------
+
+// using ComponentStatus = QPair< QString /*full import name*/, QString /*error*/ >;
 using QmlImportMap = QMultiMap< QString /*version*/, ComponentStatus >;
 
 class QmlFile : public QFile
@@ -21,8 +86,8 @@ public:
     QStringList used_components( ) const;
 
 public slots:
-    void set_import_map( QmlImportMap import_map );
     void set_used_components( QStringList used_components );
+    void set_import_map( const QmlImportMap& map );
 
 private:
     void read_file( );

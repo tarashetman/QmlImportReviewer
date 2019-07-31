@@ -52,18 +52,6 @@ QmlFile::used_components( ) const
 }
 
 void
-QmlFile::set_import_map( QmlImportMap import_map )
-{
-    if ( m_import_map == import_map )
-    {
-        return;
-    }
-
-    m_import_map = import_map;
-    emit import_map_changed( m_import_map );
-}
-
-void
 QmlFile::set_used_components( QStringList used_components )
 {
     if ( m_used_components == used_components )
@@ -73,6 +61,12 @@ QmlFile::set_used_components( QStringList used_components )
 
     m_used_components = used_components;
     emit used_components_changed( m_used_components );
+}
+
+void
+QmlFile::set_import_map( const QmlImportMap& map )
+{
+    m_import_map = map;
 }
 
 void

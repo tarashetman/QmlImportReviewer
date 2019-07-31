@@ -45,18 +45,6 @@ QmldirFile::qml_content( ) const
 }
 
 void
-QmldirFile::set_qml_content( QmldirContentMap qml_content )
-{
-    if ( m_qml_content == qml_content )
-    {
-        return;
-    }
-
-    m_qml_content = qml_content;
-    emit qml_content_changed( m_qml_content );
-}
-
-void
 QmldirFile::read_file( )
 {
     m_qml_content.clear( );

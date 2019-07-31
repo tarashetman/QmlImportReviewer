@@ -54,29 +54,29 @@ Window {
         }
     }
 
-    ListView {
-        id : _listView
+//    ListView {
+//        id : _listView
 
-        anchors.top: _controlsRow.bottom
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+//        anchors.top: _controlsRow.bottom
+//        anchors.left: parent.left
+//        anchors.right: parent.right
+//        anchors.bottom: parent.bottom
 
-        model: 20
-        clip: true
-        spacing: 5
+//        model: 20
+//        clip: true
+//        spacing: 5
 
-        delegate: Rectangle {
-            id: _delegate
-            height: 20
-            width: parent.width
-            color: "red"
-            Text {
-                id: _fileName
-//                text: model.fileName
-            }
-        }
-    }
+//        delegate: Rectangle {
+//            id: _delegate
+//            height: 20
+//            width: parent.width
+//            color: "red"
+//            Text {
+//                id: _fileName
+////                text: model.fileName
+//            }
+//        }
+//    }
 
 
     FileDialog {

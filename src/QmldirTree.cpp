@@ -47,13 +47,13 @@ Tree::start_review_of_imports( )
             {
                 QList< ContentComponent > available_components;
                 available_components << qmldir_tree( )
-                                                .value( import.first /*full import name*/ )
+                                                .value( import.full_import_name( ) )
                                                 .qml_content( )
                                                 .values( key );
 
                 if ( available_components.isEmpty( ) )
                 {
-                    import.second = "EMPTY COMPONENT LIST";
+                    import.set_error( "EMPTY COMPONENT LIST" );
                     continue;
                 }
                 // And now I can compare it
@@ -62,7 +62,8 @@ Tree::start_review_of_imports( )
 
                 for ( const auto& available_component : available_components )
                 {
-                    if ( qml_tree_it->used_components( ).contains( available_component.first ) )
+                    if ( qml_tree_it->used_components( ).contains(
+                                 available_component.name_of_component( ) ) )
                     {
                         is_using = true;
                         break;
@@ -70,8 +71,8 @@ Tree::start_review_of_imports( )
                 }
                 if ( !is_using )
                 {
-                    import.second = "DON'T USES";
-                    qDebug( ) << import.first << key << import.second;
+                    import.set_error( "DON'T USES" );
+                    qDebug( ) << import.full_import_name( ) << key << import.error( );
                 }
             }
         }
