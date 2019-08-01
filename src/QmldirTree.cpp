@@ -46,17 +46,17 @@ Tree::start_review_of_imports( )
             {
                 QList< ContentComponent > available_components;
                 available_components << qmldir_tree( )
-                                        .value( import.full_import_name( ) )
-                                        .qml_components( )
-                                        .values( module_version );
+                                                .value( import.full_import_name( ) )
+                                                .qml_components( )
+                                                .values( module_version );
 
                 QList< ContentComponent > available_singletons;
                 available_singletons << qmldir_tree( )
-                                        .value( import.full_import_name( ) )
-                                        .qml_singletons( )
-                                        .values( module_version );
+                                                .value( import.full_import_name( ) )
+                                                .qml_singletons( )
+                                                .values( module_version );
 
-                if ( available_components.isEmpty( ) && available_singletons.isEmpty() )
+                if ( available_components.isEmpty( ) && available_singletons.isEmpty( ) )
                 {
                     import.set_error( "EMPTY COMPONENT LIST" );
                     continue;
@@ -65,13 +65,13 @@ Tree::start_review_of_imports( )
 
                 bool is_using = false;
 
-                //components
-                if( !available_components.isEmpty() )
+                // components
+                if ( !available_components.isEmpty( ) )
                 {
                     for ( const auto& available_component : available_components )
                     {
                         if ( qml_tree_it->used_components( ).contains(
-                                 available_component.name_of_component( ) ) )
+                                     available_component.name_of_component( ) ) )
                         {
                             is_using = true;
                             break;
@@ -79,12 +79,13 @@ Tree::start_review_of_imports( )
                     }
                 }
 
-                //singletons
-                if( !available_singletons.isEmpty( ) && !is_using )
+                // singletons
+                if ( !available_singletons.isEmpty( ) && !is_using )
                 {
                     for ( const auto& available_singleton : available_singletons )
                     {
-                        if( qml_tree_it->find_singleton(available_singleton.name_of_component()) )
+                        if ( qml_tree_it->find_singleton(
+                                     available_singleton.name_of_component( ) ) )
                         {
                             is_using = true;
                             break;
@@ -96,6 +97,8 @@ Tree::start_review_of_imports( )
                 {
                     import.set_error( "DON'T USES" );
                     qDebug( ) << import.full_import_name( ) << module_version << import.error( );
+
+                    qml_tree_it->delete_import( import.full_import_name( ) );
                 }
             }
         }
@@ -126,7 +129,7 @@ Tree::start_searching_qmldir_files( const QString& folder )
         if ( contains_qmldir_files( dir.next( ) ) )
         {
             m_qmldir_tree[ ( !root.isEmpty( ) ? ( root + "." ) : ( "" ) )
-                    + dir.filePath( ).remove( folder + "/" ).replace( "/", "." ) ]
+                           + dir.filePath( ).remove( folder + "/" ).replace( "/", "." ) ]
                     = QmldirFile( dir.filePath( ) + "/qmldir", this );
         }
     }
@@ -135,7 +138,8 @@ Tree::start_searching_qmldir_files( const QString& folder )
     //    QmldirTree::iterator end = m_qmldir_tree.end( );
     //    for ( QmldirTree::iterator begin = m_qmldir_tree.begin( ); begin != end; ++begin )
     //    {
-    //        qDebug( ) << begin.module_version( ) << begin.value( ).qml_components( ).values( "1.0" );
+    //        qDebug( ) << begin.module_version( ) << begin.value( ).qml_components( ).values( "1.0"
+    //        );
     //    }
 }
 
@@ -153,7 +157,7 @@ Tree::start_searching_qml_files( const QString& folder )
     }
 
     QDirIterator sub_dirs(
-                folder, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories );
+            folder, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories );
     while ( sub_dirs.hasNext( ) )
     {
         QDirIterator sub_dir( sub_dirs.next( ), filters, QDir::Files | QDir::NoSymLinks );

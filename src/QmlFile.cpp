@@ -68,9 +68,10 @@ QmlFile::set_import_map( const QmlImportMap& map )
     m_import_map = map;
 }
 
-bool QmlFile::find_singleton(const QString &singleton)
+bool
+QmlFile::find_singleton( const QString& singleton )
 {
-//    qDebug() << "check singleton" << singleton;
+    //    qDebug() << "check singleton" << singleton;
     open( QIODevice::ReadOnly );
     while ( !atEnd( ) )
     {
@@ -78,11 +79,11 @@ bool QmlFile::find_singleton(const QString &singleton)
 
         if ( !line.contains( "import " ) )
         {
-            if( line.contains(singleton + ".") )
+            if ( line.contains( singleton + "." ) )
             {
-//                qDebug() << "contains singleton"
-//                         << singleton;
-                close();
+                //                qDebug() << "contains singleton"
+                //                         << singleton;
+                close( );
                 return true;
             }
         }
@@ -92,9 +93,26 @@ bool QmlFile::find_singleton(const QString &singleton)
 }
 
 void
+QmlFile::delete_import( const QString& import )
+{
+    open( QIODevice::ReadWrite | QIODevice::Text );
+    QString s;
+    QTextStream t( this );
+    while ( !t.atEnd( ) )
+    {
+        QString line = t.readLine( );
+        if ( !line.contains( "import " + import ) )
+            s.append( line + "\n" );
+    }
+    resize( 0 );
+    t << s;
+    close( );
+}
+
+void
 QmlFile::find_imports( )
 {
-    if(fileName().isEmpty())
+    if ( fileName( ).isEmpty( ) )
     {
         return;
     }

@@ -7,8 +7,7 @@
 #include <iostream>
 
 #include "src/QmldirTree.hpp"
-
-//#define LOGGING_TO_FILE
+#define LOGGING_TO_FILE
 
 #ifdef LOGGING_TO_FILE
 static QFile S_LOG_FILE;
@@ -21,19 +20,29 @@ myMessageOutput( QtMsgType type, const QMessageLogContext& /*context*/, const QS
     switch ( type )
     {
     case QtDebugMsg:
-        txt = QString( "%1 [D] %2" ).arg(QTime::currentTime().toString(Qt::ISODate)).arg( msg );
+        txt = QString( "%1 [D] %2" )
+                      .arg( QTime::currentTime( ).toString( Qt::ISODate ) )
+                      .arg( msg );
         break;
     case QtWarningMsg:
-        txt = QString( "%1 [W] %2" ).arg(QTime::currentTime().toString(Qt::ISODate)).arg( msg );
+        txt = QString( "%1 [W] %2" )
+                      .arg( QTime::currentTime( ).toString( Qt::ISODate ) )
+                      .arg( msg );
         break;
     case QtCriticalMsg:
-        txt = QString( "%1 [C] %2" ).arg(QTime::currentTime().toString(Qt::ISODate)).arg( msg );
+        txt = QString( "%1 [C] %2" )
+                      .arg( QTime::currentTime( ).toString( Qt::ISODate ) )
+                      .arg( msg );
         break;
     case QtFatalMsg:
-        txt = QString( "%1 [F] %2" ).arg(QTime::currentTime().toString(Qt::ISODate)).arg( msg );
+        txt = QString( "%1 [F] %2" )
+                      .arg( QTime::currentTime( ).toString( Qt::ISODate ) )
+                      .arg( msg );
         break;
     case QtInfoMsg:
-        txt = QString( "%1 [I] %2" ).arg(QTime::currentTime().toString(Qt::ISODate)).arg( msg );
+        txt = QString( "%1 [I] %2" )
+                      .arg( QTime::currentTime( ).toString( Qt::ISODate ) )
+                      .arg( msg );
         break;
     }
 
@@ -41,17 +50,16 @@ myMessageOutput( QtMsgType type, const QMessageLogContext& /*context*/, const QS
     QTextStream ts( &S_LOG_FILE );
     ts << txt << endl;
 #else
-    std::cout << txt.toStdString() << std::endl;
+    std::cout << txt.toStdString( ) << std::endl;
 #endif
 }
-
 
 int
 main( int argc, char* argv[] )
 {
 #ifdef LOGGING_TO_FILE
-    S_LOG_FILE.setFileName("reviewer.log");
-    S_LOG_FILE.remove();
+    S_LOG_FILE.setFileName( "reviewer.log" );
+    S_LOG_FILE.remove( );
     S_LOG_FILE.open( QIODevice::WriteOnly | QIODevice::Append );
 #endif
     qInstallMessageHandler( myMessageOutput );

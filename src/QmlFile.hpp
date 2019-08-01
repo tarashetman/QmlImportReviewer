@@ -84,7 +84,8 @@ public:
 
     QmlImportMap import_map( ) const;
     QStringList used_components( ) const;
-    bool find_singleton(const QString &singleton );
+    bool find_singleton( const QString& singleton );
+    void delete_import( const QString& import );
 
 public slots:
     void set_used_components( QStringList used_components );
