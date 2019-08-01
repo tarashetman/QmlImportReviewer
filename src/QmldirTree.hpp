@@ -8,23 +8,6 @@
 using QmldirTree = QMap< QString /*full import name*/, QmldirFile >;
 using QmlTree = QList< QmlFile >;
 
-// struct ImportError : public QObject
-//{
-//    Q_GADGET
-//    Q_PROPERTY(type name READ name WRITE setName NOTIFY nameChanged)
-
-//    ImportError() {};
-//};
-
-// struct QmlFileImportsError : public QObject
-//{
-//    Q_GADGET
-//    Q_PROPERTY( QString file_name READ file_name )
-//    Q_PROPERTY( QVariantList list_of_errors READ list_of_errors )
-
-//    ImportsError() {}
-//};
-
 class Tree : public QObject
 {
     Q_OBJECT
@@ -45,7 +28,8 @@ public:
     Q_INVOKABLE void reset( );
     Q_INVOKABLE void start_searching( const QString& folder );
     Q_INVOKABLE void start_review_of_imports( );
-    Q_INVOKABLE void start_review_of_usable_qml_files( );
+    Q_INVOKABLE void delete_unusable_qml_files( );
+    Q_INVOKABLE void delete_unusable_imports( );
     void start_searching_qmldir_files( const QString& folder );
     void start_searching_qml_files( const QString& folder );
 
@@ -68,6 +52,11 @@ signals:
     void qmldir_tree_changed( QmldirTree qmldir_tree );
     void qml_tree_changed( QmlTree qml_tree );
     void qml_error_imports_changed( QVariantList qml_error_imports );
+
+private:
+    void delete_qml_file_and_component_from_qmldir(QmldirFile *qmldir
+                                                    , QSharedPointer<ContentComponent> component
+                                                    , const QString& version );
 
 private:
     QString m_qml_folder_string = "";

@@ -19,8 +19,8 @@ QmldirFile::QmldirFile( const QString& name, QObject* parent )
 
 QmldirFile::QmldirFile( const QmldirFile& file )
     : QFile( file.fileName( ), file.parent( ) )
-    , m_qml_components( file.qml_components( ) )
-    , m_qml_singletons( file.qml_singletons( ) )
+    , m_components( file.components( ) )
+    , m_singletons( file.singletons( ) )
 {
 }
 
@@ -33,20 +33,48 @@ QmldirFile::operator=( const QmldirFile& file )
     }
     setParent( file.parent( ) );
     setFileName( file.fileName( ) );
-    m_qml_components = file.qml_components( );
-    m_qml_singletons = file.qml_singletons( );
+    m_components = file.components( );
+    m_singletons = file.singletons( );
     return *this;
 }
 
 QmldirContentMap
-QmldirFile::qml_components( ) const
+QmldirFile::components( ) const
 {
-    return m_qml_components;
+    return m_components;
 }
 
-QmldirContentMap QmldirFile::qml_singletons() const
+QmldirContentMap QmldirFile::singletons() const
 {
-    return m_qml_singletons;
+    return m_singletons;
+}
+
+void QmldirFile::delete_component_or_singleton(const QString &name, const QString &version)
+{
+    open( QIODevice::ReadWrite | QIODevice::Text );
+    QString s;
+    QTextStream t( this );
+    while ( !t.atEnd( ) )
+    {
+        QString line = t.readLine( );
+        if ( !line.contains( name + " " + version ) )
+        {
+            s.append( line + "\n" );
+        }
+        else
+        {
+            QString url = fileName();
+            url.remove( url.lastIndexOf( "/" ) + 1, url.length() );
+            url.append(find( S_RE_FILE, line ).first);
+            QFile qml(url);
+            qml.remove();
+        }
+    }
+    resize( 0 );
+    t << s;
+    close( );
+
+    read_file();
 }
 
 void
@@ -57,7 +85,8 @@ QmldirFile::read_file( )
         return;
     }
 
-    m_qml_components.clear( );
+    m_components.clear( );
+    m_singletons.clear( );
     open( QIODevice::ReadOnly );
     while ( !atEnd( ) )
     {
@@ -88,11 +117,15 @@ QmldirFile::read_file( )
 
         if( is_singleton )
         {
-            m_qml_singletons.insert( version.first, ContentComponent( component.first, file.first ) );
+            m_singletons.insert( version.first,
+                                     QSharedPointer<ContentComponent>(
+                                         new ContentComponent(component.first, file.first ) ) );
         }
         else
         {
-            m_qml_components.insert( version.first, ContentComponent( component.first, file.first ) );
+            m_components.insert( version.first,
+                                     QSharedPointer<ContentComponent>(
+                                         new ContentComponent( component.first, file.first) ) );
         }
     }
     close( );

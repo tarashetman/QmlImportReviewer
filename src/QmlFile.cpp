@@ -136,7 +136,9 @@ QmlFile::find_imports( )
 
             if ( !import.first.isEmpty( ) && !version.first.isEmpty( ) )
             {
-                m_import_map.insert( version.first, ComponentStatus( import.first, "" ) );
+                m_import_map.insert( version.first,
+                                     QSharedPointer< ComponentStatus>(
+                                         new ComponentStatus( import.first, "" ) ) );
             }
             continue;
         }

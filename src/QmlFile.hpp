@@ -68,7 +68,7 @@ private:
 //----------------------------------------------------------------------------------------------------------
 
 // using ComponentStatus = QPair< QString /*full import name*/, QString /*error*/ >;
-using QmlImportMap = QMultiMap< QString /*version*/, ComponentStatus >;
+using QmlImportMap = QMultiMap< QString /*version*/, QSharedPointer< ComponentStatus> >;
 
 class QmlFile : public QFile
 {

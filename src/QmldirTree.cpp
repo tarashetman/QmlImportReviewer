@@ -10,7 +10,6 @@ Tree::Tree( QObject* parent )
 void
 Tree::start_searching( const QString& folder )
 {
-    //    qDebug( ) << contains_qml_files( folder );
     set_searching_in_progress( true );
 
     start_searching_qmldir_files( folder );
@@ -27,38 +26,36 @@ Tree::start_searching( const QString& folder )
 void
 Tree::start_review_of_imports( )
 {
-    QmlTree::iterator end = m_qml_tree.end( );
     // for all *.qml get import map
-    for ( QmlTree::iterator qml_tree_it = m_qml_tree.begin( ); qml_tree_it != end; ++qml_tree_it )
+    for( auto& qml_file : m_qml_tree )
     {
-        qDebug( ) << qml_tree_it->fileName( );
         QStringList module_versions;
-        module_versions << qml_tree_it->import_map( ).keys( );
+        module_versions << qml_file.import_map( ).keys( );
         module_versions.removeDuplicates( );
 
         // for all individual import versions get imports
-        for ( auto& module_version : module_versions )
+        for ( const auto& module_version : module_versions )
         {
-            QList< ComponentStatus > imports = qml_tree_it->import_map( ).values( module_version );
+            QList< QSharedPointer< ComponentStatus > > imports = qml_file.import_map( ).values( module_version );
 
             // for all imports get qmldir components
             for ( auto& import : imports )
             {
-                QList< ContentComponent > available_components;
+                QList< QSharedPointer<ContentComponent> > available_components;
                 available_components << qmldir_tree( )
-                                                .value( import.full_import_name( ) )
-                                                .qml_components( )
-                                                .values( module_version );
+                                        .value( import->full_import_name( ) )
+                                        .components( )
+                                        .values( module_version );
 
-                QList< ContentComponent > available_singletons;
+                QList< QSharedPointer<ContentComponent> > available_singletons;
                 available_singletons << qmldir_tree( )
-                                                .value( import.full_import_name( ) )
-                                                .qml_singletons( )
-                                                .values( module_version );
+                                        .value( import->full_import_name( ) )
+                                        .singletons( )
+                                        .values( module_version );
 
                 if ( available_components.isEmpty( ) && available_singletons.isEmpty( ) )
                 {
-                    import.set_error( "EMPTY COMPONENT LIST" );
+                    import->set_error( "EMPTY COMPONENT LIST" );
                     continue;
                 }
                 // And now I can compare it
@@ -68,47 +65,107 @@ Tree::start_review_of_imports( )
                 // components
                 if ( !available_components.isEmpty( ) )
                 {
-                    for ( const auto& available_component : available_components )
+                    for ( auto& available_component : available_components )
                     {
-                        if ( qml_tree_it->used_components( ).contains(
-                                     available_component.name_of_component( ) ) )
+                        if ( qml_file.used_components( ).contains(
+                                 available_component->name_of_component( ) ) )
                         {
                             is_using = true;
-                            break;
+                            available_component->increment_count_of_using();
                         }
                     }
                 }
 
                 // singletons
-                if ( !available_singletons.isEmpty( ) && !is_using )
+                if ( !available_singletons.isEmpty( ) )
                 {
-                    for ( const auto& available_singleton : available_singletons )
+                    for ( auto& available_singleton : available_singletons )
                     {
-                        if ( qml_tree_it->find_singleton(
-                                     available_singleton.name_of_component( ) ) )
+                        if ( qml_file.find_singleton(
+                                 available_singleton->name_of_component( ) ) )
                         {
                             is_using = true;
-                            break;
+                            available_singleton->increment_count_of_using();
+
                         }
                     }
                 }
 
                 if ( !is_using )
                 {
-                    import.set_error( "DON'T USES" );
-                    qDebug( ) << import.full_import_name( ) << module_version << import.error( );
-
-                    qml_tree_it->delete_import( import.full_import_name( ) );
+                    import->set_error( "DON'T USES" );
                 }
             }
         }
-        qDebug( ) << "\n";
+    }
+
+    delete_unusable_qml_files();
+    delete_unusable_imports();
+}
+
+void Tree::delete_unusable_qml_files()
+{
+    for( auto& qmldir_file : qmldir_tree() )
+    {
+        QStringList module_versions;
+        module_versions << qmldir_file.components().keys();
+        module_versions.removeDuplicates( );
+
+        for ( const auto& module_version : module_versions )
+        {
+            for( auto& component : qmldir_file.components().values(module_version) )
+            {
+                if( component->count_of_using( ) == 0 )
+                {
+
+                    delete_qml_file_and_component_from_qmldir( &qmldir_file, component, module_version);
+                }
+            }
+        }
+
+        QStringList singleton_versions;
+        singleton_versions << qmldir_file.singletons().keys();
+        singleton_versions.removeDuplicates( );
+
+        for ( const auto& singleton_version : singleton_versions )
+        {
+            for( auto& singleton : qmldir_file.singletons().values(singleton_version) )
+            {
+                if(singleton->count_of_using() == 0)
+                {
+                    delete_qml_file_and_component_from_qmldir( &qmldir_file, singleton, singleton_version);
+                }
+            }
+        }
     }
 }
 
 void
-Tree::start_review_of_usable_qml_files( )
+Tree::delete_unusable_imports( )
 {
+    // for all *.qml get import map
+    for( auto& qml_file : m_qml_tree )
+    {
+        QStringList module_versions;
+        module_versions << qml_file.import_map( ).keys( );
+        module_versions.removeDuplicates( );
+
+        // for all individual import versions get imports
+        for ( const auto& module_version : module_versions )
+        {
+            QList< QSharedPointer< ComponentStatus > > imports = qml_file.import_map( ).values( module_version );
+
+            // for all imports get qmldir components
+            for ( auto& import : imports )
+            {
+                if( import->error() == "DON'T USES")
+                {
+                    qDebug() << import->error();
+                    qml_file.delete_import( import->full_import_name( ) ); // delete unusable imports
+                }
+            }
+        }
+    }
 }
 
 void
@@ -129,18 +186,11 @@ Tree::start_searching_qmldir_files( const QString& folder )
         if ( contains_qmldir_files( dir.next( ) ) )
         {
             m_qmldir_tree[ ( !root.isEmpty( ) ? ( root + "." ) : ( "" ) )
-                           + dir.filePath( ).remove( folder + "/" ).replace( "/", "." ) ]
+                    + dir.filePath( ).remove( folder + "/" ).replace( "/", "." ) ]
                     = QmldirFile( dir.filePath( ) + "/qmldir", this );
         }
     }
     emit qmldir_tree_changed( m_qmldir_tree );
-
-    //    QmldirTree::iterator end = m_qmldir_tree.end( );
-    //    for ( QmldirTree::iterator begin = m_qmldir_tree.begin( ); begin != end; ++begin )
-    //    {
-    //        qDebug( ) << begin.module_version( ) << begin.value( ).qml_components( ).values( "1.0"
-    //        );
-    //    }
 }
 
 void
@@ -157,7 +207,7 @@ Tree::start_searching_qml_files( const QString& folder )
     }
 
     QDirIterator sub_dirs(
-            folder, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories );
+                folder, QDir::Dirs | QDir::NoDotAndDotDot, QDirIterator::Subdirectories );
     while ( sub_dirs.hasNext( ) )
     {
         QDirIterator sub_dir( sub_dirs.next( ), filters, QDir::Files | QDir::NoSymLinks );
@@ -168,12 +218,6 @@ Tree::start_searching_qml_files( const QString& folder )
     }
 
     emit qml_tree_changed( m_qml_tree );
-
-    //    QmlTree::iterator end = m_qml_tree.end( );
-    //    for ( QmlTree::iterator begin = m_qml_tree.begin( ); begin != end; ++begin )
-    //    {
-    //        qDebug( ) << begin->fileName( );
-    //    }
 }
 
 void
@@ -244,4 +288,14 @@ Tree::set_searching_in_progress( bool searching_in_progress )
 
     m_searching_in_progress = searching_in_progress;
     emit searching_in_progress_changed( m_searching_in_progress );
+}
+
+void Tree::delete_qml_file_and_component_from_qmldir(QmldirFile* qmldir
+                                                      , QSharedPointer<ContentComponent> component
+                                                      , const QString& version )
+{
+    qDebug() << component->name_of_component()
+             << version
+             << component->count_of_using();
+    qmldir->delete_component_or_singleton( component->name_of_component(), version );
 }

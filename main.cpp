@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "src/QmldirTree.hpp"
-#define LOGGING_TO_FILE
+//#define LOGGING_TO_FILE
 
 #ifdef LOGGING_TO_FILE
 static QFile S_LOG_FILE;
