@@ -9,8 +9,6 @@ static const QRegExp S_RE_FILE( "[a-zA-Z]+(.qml)" );
 QmldirFile::QmldirFile( QObject* parent )
     : QFile( parent )
 {
-    setFileName( "" );
-    read_file( );
 }
 
 QmldirFile::QmldirFile( const QString& name, QObject* parent )
@@ -21,7 +19,8 @@ QmldirFile::QmldirFile( const QString& name, QObject* parent )
 
 QmldirFile::QmldirFile( const QmldirFile& file )
     : QFile( file.fileName( ), file.parent( ) )
-    , m_qml_content( file.qml_content( ) )
+    , m_qml_components( file.qml_components( ) )
+    , m_qml_singletons( file.qml_singletons( ) )
 {
 }
 
@@ -34,24 +33,36 @@ QmldirFile::operator=( const QmldirFile& file )
     }
     setParent( file.parent( ) );
     setFileName( file.fileName( ) );
-    m_qml_content = file.qml_content( );
+    m_qml_components = file.qml_components( );
+    m_qml_singletons = file.qml_singletons( );
     return *this;
 }
 
 QmldirContentMap
-QmldirFile::qml_content( ) const
+QmldirFile::qml_components( ) const
 {
-    return m_qml_content;
+    return m_qml_components;
+}
+
+QmldirContentMap QmldirFile::qml_singletons() const
+{
+    return m_qml_singletons;
 }
 
 void
 QmldirFile::read_file( )
 {
-    m_qml_content.clear( );
+    if(fileName().isEmpty())
+    {
+        return;
+    }
+
+    m_qml_components.clear( );
     open( QIODevice::ReadOnly );
     while ( !atEnd( ) )
     {
         QString line = readLine( );
+        bool is_singleton = false;
 
         QPair< QString, int > component = find( S_RE_COMPONENT, line );
         if ( component.first.isEmpty( ) )
@@ -60,6 +71,7 @@ QmldirFile::read_file( )
         }
         if ( component.first == "singleton" )
         {
+            is_singleton = true;
             component = find( S_RE_COMPONENT, line, component.second );
         }
 
@@ -74,8 +86,16 @@ QmldirFile::read_file( )
             continue;
         }
 
-        m_qml_content.insert( version.first, ContentComponent( component.first, file.first ) );
+        if( is_singleton )
+        {
+            m_qml_singletons.insert( version.first, ContentComponent( component.first, file.first ) );
+        }
+        else
+        {
+            m_qml_components.insert( version.first, ContentComponent( component.first, file.first ) );
+        }
     }
+    close( );
 }
 
 QPair< QString, int >

@@ -4,18 +4,17 @@
 static const QRegExp S_RE_IMPORTS( "[a-zA-Z.]+" );
 static const QRegExp S_RE_VERSION( "[1-9]+(.)+[0-9]+" );
 static const QRegExp S_RE_COMPONENTS( "([a-zA-Z]+)(\\s){0,1}(\\{){1}" );
+static const QRegExp S_RE_COMPONENTS_AS_PROPERTY( "(property)+(\\s)([a-zA-Z]+)" );
 
 QmlFile::QmlFile( QObject* parent )
     : QFile( parent )
 {
-    setFileName( "" );
-    read_file( );
 }
 
 QmlFile::QmlFile( const QString& name, QObject* parent )
     : QFile( name, parent )
 {
-    read_file( );
+    find_imports( );
 }
 
 QmlFile::QmlFile( const QmlFile& file )
@@ -69,9 +68,37 @@ QmlFile::set_import_map( const QmlImportMap& map )
     m_import_map = map;
 }
 
-void
-QmlFile::read_file( )
+bool QmlFile::find_singleton(const QString &singleton)
 {
+//    qDebug() << "check singleton" << singleton;
+    open( QIODevice::ReadOnly );
+    while ( !atEnd( ) )
+    {
+        QString line = readLine( );
+
+        if ( !line.contains( "import " ) )
+        {
+            if( line.contains(singleton + ".") )
+            {
+//                qDebug() << "contains singleton"
+//                         << singleton;
+                close();
+                return true;
+            }
+        }
+    }
+    close( );
+    return false;
+}
+
+void
+QmlFile::find_imports( )
+{
+    if(fileName().isEmpty())
+    {
+        return;
+    }
+
     m_import_map.clear( );
     m_used_components.clear( );
 
@@ -102,8 +129,14 @@ QmlFile::read_file( )
             {
                 m_used_components << component.first;
             }
+            component = find( S_RE_COMPONENTS_AS_PROPERTY, line, 0, 3 );
+            if ( !component.first.isEmpty( ) && !m_used_components.contains( component.first ) )
+            {
+                m_used_components << component.first;
+            }
         }
     }
+    close( );
 }
 
 QPair< QString, int >

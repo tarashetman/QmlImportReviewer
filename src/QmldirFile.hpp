@@ -71,13 +71,11 @@ using QmldirContentMap = QMultiMap< QString /*version*/, ContentComponent >;
 class QmldirFile : public QFile
 {
     Q_OBJECT
-    Q_PROPERTY( QmldirContentMap qml_content READ qml_content NOTIFY qml_content_changed )
 
-    enum class ErrorCode
-    {
-        NONE,
-        EMPTY
-    };
+    Q_PROPERTY( QmldirContentMap qml_components READ qml_components NOTIFY
+                        qml_components_changed )
+    Q_PROPERTY( QmldirContentMap qml_singletons READ qml_singletons NOTIFY
+                        qml_singletons_changed )
 
 public:
     QmldirFile( QObject* parent = nullptr );
@@ -85,16 +83,18 @@ public:
     QmldirFile( const QmldirFile& file );
     QmldirFile& operator=( const QmldirFile& file );
 
-    QmldirContentMap qml_content( ) const;
+    QmldirContentMap qml_components( ) const;
+    QmldirContentMap qml_singletons() const;
 
 private:
     void read_file( );
     QPair< QString, int > find( QRegExp reg, QString line, int pos = 0 );
 
 signals:
-    void qml_content_changed( QmldirContentMap qml_content );
+    void qml_components_changed( QmldirContentMap qml_components );
+    void qml_singletons_changed(QmldirContentMap qml_singletons);
 
 private:
-    QmldirContentMap m_qml_content{};
-    ErrorCode m_error = ErrorCode::NONE;
+    QmldirContentMap m_qml_components{};
+    QmldirContentMap m_qml_singletons{};
 };

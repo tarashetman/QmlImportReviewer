@@ -84,13 +84,14 @@ public:
 
     QmlImportMap import_map( ) const;
     QStringList used_components( ) const;
+    bool find_singleton(const QString &singleton );
 
 public slots:
     void set_used_components( QStringList used_components );
     void set_import_map( const QmlImportMap& map );
 
 private:
-    void read_file( );
+    void find_imports( );
     QPair< QString, int > find( QRegExp reg, QString line, int pos = 0, int cap = 0 );
 
 signals:

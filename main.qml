@@ -78,7 +78,6 @@ Window {
 //        }
 //    }
 
-
     FileDialog {
         id: _folderDialog
 
@@ -90,21 +89,9 @@ Window {
         }
 
         Component.onCompleted: {
+//            qmldirTree.set_qml_folder_string("////////home/hetman/WORK/PROJECTS/delorean/delorean/hmi");
             qmldirTree.set_qml_folder_string("////////home/thetman/Project/donington/ha-hmi/src/hmi/qml");
 //            qmldirTree.set_qml_folder_string(shortcuts.home, false); // TODO set on release
         }
     }
-
-//    ProgressBar{
-//        anchors.bottom: parent.bottom
-//        anchors.left: parent.left
-//        anchors.right: parent.right
-//        anchors.margins: 10
-//        height: 30
-
-//        from: 0
-//        to: 100
-
-//        value: 100
-//    }
 }
