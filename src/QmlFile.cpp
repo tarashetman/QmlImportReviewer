@@ -110,6 +110,19 @@ QmlFile::delete_import( const QString& import )
 }
 
 void
+QmlFile::emulate_path_qmldir_import( const QString& import, const QString& version )
+{
+    m_import_map.insert( version,
+                         QSharedPointer< ComponentStatus >( new ComponentStatus( import, "" ) ) );
+}
+
+QString
+QmlFile::path( )
+{
+    return fileName( ).remove( fileName( ).lastIndexOf( "/" ), fileName( ).length( ) );
+}
+
+void
 QmlFile::find_imports( )
 {
     if ( fileName( ).isEmpty( ) )
@@ -137,8 +150,8 @@ QmlFile::find_imports( )
             if ( !import.first.isEmpty( ) && !version.first.isEmpty( ) )
             {
                 m_import_map.insert( version.first,
-                                     QSharedPointer< ComponentStatus>(
-                                         new ComponentStatus( import.first, "" ) ) );
+                                     QSharedPointer< ComponentStatus >(
+                                             new ComponentStatus( import.first, "" ) ) );
             }
             continue;
         }

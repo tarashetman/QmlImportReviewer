@@ -68,7 +68,7 @@ private:
 //----------------------------------------------------------------------------------------------------------
 
 // using ComponentStatus = QPair< QString /*full import name*/, QString /*error*/ >;
-using QmlImportMap = QMultiMap< QString /*version*/, QSharedPointer< ComponentStatus> >;
+using QmlImportMap = QMultiMap< QString /*version*/, QSharedPointer< ComponentStatus > >;
 
 class QmlFile : public QFile
 {
@@ -86,6 +86,8 @@ public:
     QStringList used_components( ) const;
     bool find_singleton( const QString& singleton );
     void delete_import( const QString& import );
+    void emulate_path_qmldir_import( const QString& import, const QString& version );
+    QString path( );
 
 public slots:
     void set_used_components( QStringList used_components );

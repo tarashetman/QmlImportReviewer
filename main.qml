@@ -39,6 +39,7 @@ Window {
                 _folderDialog.open();
             }
         }
+
         Button {
             id: _searchingQmldir
 
@@ -50,6 +51,34 @@ Window {
 
             onClicked: {
                 qmldirTree.start_searching(qmldir_tree.qml_folder_string);
+            }
+        }
+
+        Button {
+            id: _deleteImports
+
+            Layout.fillHeight: true
+
+            enabled: !qmldirTree.searching_in_progress
+
+            text: "Delete imports"
+
+            onClicked: {
+                qmldirTree.delete_unusable_imports();
+            }
+        }
+
+        Button {
+            id: _deleteQmlFiles
+
+            Layout.fillHeight: true
+
+            enabled: !qmldirTree.searching_in_progress
+
+            text: "Delete Qml files"
+
+            onClicked: {
+                qmldirTree.delete_unusable_qml_files();
             }
         }
     }
@@ -89,8 +118,8 @@ Window {
         }
 
         Component.onCompleted: {
-//            qmldirTree.set_qml_folder_string("////////home/hetman/WORK/PROJECTS/delorean/delorean/hmi");
-            qmldirTree.set_qml_folder_string("////////home/thetman/Project/donington/ha-hmi/src/hmi/qml");
+            qmldirTree.set_qml_folder_string("////////home/hetman/WORK/PROJECTS/delorean/delorean/hmi");
+//            qmldirTree.set_qml_folder_string("////////home/thetman/Project/donington/ha-hmi/src/hmi/qml");
 //            qmldirTree.set_qml_folder_string(shortcuts.home, false); // TODO set on release
         }
     }

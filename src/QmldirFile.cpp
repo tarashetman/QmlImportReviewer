@@ -44,12 +44,20 @@ QmldirFile::components( ) const
     return m_components;
 }
 
-QmldirContentMap QmldirFile::singletons() const
+QmldirContentMap
+QmldirFile::singletons( ) const
 {
     return m_singletons;
 }
 
-void QmldirFile::delete_component_or_singleton(const QString &name, const QString &version)
+QString
+QmldirFile::path( )
+{
+    return fileName( ).remove( fileName( ).lastIndexOf( "/" ), fileName( ).length( ) );
+}
+
+void
+QmldirFile::delete_component_or_singleton( const QString& name, const QString& version )
 {
     open( QIODevice::ReadWrite | QIODevice::Text );
     QString s;
@@ -63,24 +71,24 @@ void QmldirFile::delete_component_or_singleton(const QString &name, const QStrin
         }
         else
         {
-            QString url = fileName();
-            url.remove( url.lastIndexOf( "/" ) + 1, url.length() );
-            url.append(find( S_RE_FILE, line ).first);
-            QFile qml(url);
-            qml.remove();
+            QString url = fileName( );
+            url.remove( url.lastIndexOf( "/" ) + 1, url.length( ) );
+            url.append( find( S_RE_FILE, line ).first );
+            QFile qml( url );
+            qml.remove( );
         }
     }
     resize( 0 );
     t << s;
     close( );
 
-    read_file();
+    read_file( );
 }
 
 void
 QmldirFile::read_file( )
 {
-    if(fileName().isEmpty())
+    if ( fileName( ).isEmpty( ) )
     {
         return;
     }
@@ -115,17 +123,17 @@ QmldirFile::read_file( )
             continue;
         }
 
-        if( is_singleton )
+        if ( is_singleton )
         {
             m_singletons.insert( version.first,
-                                     QSharedPointer<ContentComponent>(
-                                         new ContentComponent(component.first, file.first ) ) );
+                                 QSharedPointer< ContentComponent >(
+                                         new ContentComponent( component.first, file.first ) ) );
         }
         else
         {
             m_components.insert( version.first,
-                                     QSharedPointer<ContentComponent>(
-                                         new ContentComponent( component.first, file.first) ) );
+                                 QSharedPointer< ContentComponent >(
+                                         new ContentComponent( component.first, file.first ) ) );
         }
     }
     close( );

@@ -42,6 +42,8 @@ public:
 
     QVariantList qml_error_imports( ) const;
 
+    QString get_import_name_from_dir( const QString& folder );
+
 public slots:
     void set_qml_folder_string( QString qml_folder_string );
     void set_searching_in_progress( bool searching_in_progress );
@@ -54,9 +56,9 @@ signals:
     void qml_error_imports_changed( QVariantList qml_error_imports );
 
 private:
-    void delete_qml_file_and_component_from_qmldir(QmldirFile *qmldir
-                                                    , QSharedPointer<ContentComponent> component
-                                                    , const QString& version );
+    void delete_qml_file_and_component_from_qmldir( QmldirFile* qmldir,
+                                                    QSharedPointer< ContentComponent > component,
+                                                    const QString& version );
 
 private:
     QString m_qml_folder_string = "";
